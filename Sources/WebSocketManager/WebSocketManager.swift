@@ -56,6 +56,7 @@ public class WebSocketManager {
             case Keys.config.rawValue:
                 let configData = try? JSONDecoder().decode(GameConfigModel.self, from: data!)
                 self.gameConfigModel = configData
+                print(text)
             case Keys.data.rawValue:
                 let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data!)
                 self.gameDataModel = gameData

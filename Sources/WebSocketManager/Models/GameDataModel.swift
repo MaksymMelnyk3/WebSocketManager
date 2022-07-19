@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct GameDataModel: Codable {
+public struct GameDataModel: Codable {
     let key: String?
     let data: DataClass?
 }
