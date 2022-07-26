@@ -8,41 +8,80 @@
 import Foundation
 
 public struct GameDataModel: Codable {
-    let key: String?
-    let data: DataClass?
+    public let key: String?
+    public let data: DataClass?
 }
 
-struct DataClass: Codable {
-    let lastReceivedTick, tick: Int?
-    let cells: [Cell]?
-    let food: [FoodData]?
+public struct DataClass: Codable {
+    public let lastReceivedTick, tick: Int?
+    public let cells: [Cell]?
+    public let food: [FoodData]?
 }
 
-struct Cell: Codable {
-    let id: String?
-    let isNew: Bool?
-    let player: String?
-    let mass: Int?
-    let canSplit: Bool?
-    let radius: Double?
-    let velocity: Direction?
-    let speed: Int?
-    let direction: Direction?
-    let availableEnergy, eatEfficiency: Double?
-    let maxSpeed: Int?
-    let power, volatilization: Double?
-    let mergeTimer: Int?
-    let canMerge: Bool?
-    let position: Direction?
-    let own: Bool?
+public struct Cell: Codable {
+    public let id: String?
+    public let isNew: Bool?
+    public let player: String?
+    public let mass: Int?
+    public let canSplit: Bool?
+    public let radius: Double?
+    public let velocity: Velocity?
+    public let speed: Int?
+    public let direction: Position?
+    public let availableEnergy, eatEfficiency: Double?
+    public let maxSpeed: Int?
+    public let power, volatilization: Double?
+    public let mergeTimer: Int?
+    public let canMerge: Bool?
+    public let position: Position?
+    public let own: Bool?
 }
 
-struct Direction: Codable {
-    let x, y: Double?
+//public struct Direction: Codable {
+//    public let x, y: Double?
+//}
+
+public struct FoodData: Codable {
+    public let id: String?
+    public let isNew: Bool?
+    public let position: Position?
 }
 
-struct FoodData: Codable {
-    let id: String?
-    let isNew: Bool?
-    let position: Direction?
+public struct Position: Codable {
+    public var x: Double?
+    public var y: Double?
+    
+    public func distanceToPosition(target: Position) -> Double {
+        return distanceBetweenPoints(position1: self, position2: target)
+    }
+
+    func distanceBetweenPoints(position1: Position, position2: Position) -> Double {
+        let x1 = position1.x!
+        let y1 = position1.y!
+        let x2 = position2.x!
+        let y2 = position2.y!
+        return distanceBetweenPoints(x1: x1, y1: y1, x2: x2, y2: y2)
+    }
+
+    func distanceBetweenPoints(x1: Double, y1: Double, x2: Double, y2: Double) -> Double {
+        return sqrt(((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)))
+    }
+}
+
+public struct Velocity: Codable {
+    public var x: Double?
+    public var y: Double?
+    
+    public init (x: Double, y: Double){
+        self.x = x
+        self.y = y
+    }
+
+    public func moveToPosition(target: Position) -> Velocity {
+        let fromX = self.x
+        let fromY = self.y
+        let targetX = target.x!
+        let targetY = target.y!
+        return Velocity(x: targetX - fromX!, y: targetY - fromY!)
+    }
 }

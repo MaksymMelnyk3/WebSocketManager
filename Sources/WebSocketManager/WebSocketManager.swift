@@ -9,7 +9,10 @@ public class WebSocketManager {
     var gameConfigModel: GameConfigModel?
     var gameDataModel: GameDataModel?
 
-    public init(){
+    private var cellLogic: CellLogic
+    
+    public init(cellLogic: CellLogic){
+        self.cellLogic = cellLogic
         del()
     }
 
@@ -47,26 +50,42 @@ public class WebSocketManager {
         }
         
         socket.onText = { text in
-            let data = text.data(using: .utf8)
-            let gameData = try? JSONDecoder().decode(KeyModel.self, from: data!)
-            switch gameData?.key {
+            guard let data = text.data(using: .utf8) else { return }
+            guard let gameData = try? JSONDecoder().decode(KeyModel.self, from: data) else { return }
+            switch gameData.key {
             case Keys.connected.rawValue:
-                let connectData = try? JSONDecoder().decode(ConnectedModel.self, from: data!)
+                let connectData = try? JSONDecoder().decode(ConnectedModel.self, from: data)
                 self.connectedModel = connectData
             case Keys.config.rawValue:
-                let configData = try? JSONDecoder().decode(GameConfigModel.self, from: data!)
-                self.gameConfigModel = configData
-                print(text)
+                guard let configData = try? JSONDecoder().decode(GameConfigModel.self, from: data) else { return }
+                self.cellLogic.configure(gameConfig: configData)
             case Keys.data.rawValue:
-                let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data!)
-                self.gameDataModel = gameData
+                guard let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data) else { return }
+                
                 print(text)
-                self.dataReceived(tick: gameData?.data?.tick ?? 0)
+                self.dataReceived(tick: gameData.data?.tick ?? 0)
+                self.playerAction(gameData)
             default:
                 print("raw")
             }
         }
     }
+    
+    private func playerAction(_ data: GameDataModel) {
+        let result = self.cellLogic.handleGameUpdate(mapState: data)
+        let myData = PlayerAction(key: "player_action", data: PlayerData(cells: [PlayerCell(id: (result?.myCells.first?.cellId ?? ""), velocity: PlayerVelocity(x: (result?.myCells.first?.velocity?.x ?? 0), y: (result?.myCells.first?.velocity?.y ?? 0)), speed: (result?.myCells.first?.speed ?? 0), growIntention: PlayerGrowIntention(eatEfficiency: (result?.myCells.first?.growIntention?.eatEfficiency ?? 0), maxSpeed: (result?.myCells.first?.growIntention?.maxSpeed ?? 0), power: (result?.myCells.first?.growIntention?.power ?? 0), mass: (result?.myCells.first?.growIntention?.mass ?? 0), volatilization: (result?.myCells.first?.growIntention?.volatilization ?? 0)))]))
+
+        print(myData)
+
+        do {
+            let jsonData = try JSONEncoder().encode(myData)
+            self.socket.write(data: jsonData)
+        } catch {
+            print("Error: cannot create JSON")
+            return
+        }
+    }
+    
     
     private func dataReceived(tick: Int){
         let myData: [String: Any] = ["key": "data_received", "data": ["tick": tick]]

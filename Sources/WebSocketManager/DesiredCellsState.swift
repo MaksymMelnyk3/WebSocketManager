@@ -8,7 +8,7 @@
 import Foundation
 
 public struct DesiredCellsState {
-    var myCells: [CellActivity]
+    public var myCells: [CellActivity]
     
     public init(cell: [CellActivity]) {
         self.myCells = cell
