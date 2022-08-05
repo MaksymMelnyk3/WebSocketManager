@@ -14,6 +14,6 @@ public protocol CellLogic{
     
     func configure(gameConfig: GameConfigModel)
     
-    func handleGameUpdate(mapState: GameDataModel) -> DesiredCellsState?
+    func handleGameUpdate(mapState: GameDataModel) -> [CellActivity]?
 
 }

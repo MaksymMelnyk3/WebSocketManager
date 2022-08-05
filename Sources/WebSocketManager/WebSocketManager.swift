@@ -71,19 +71,35 @@ public class WebSocketManager {
         }
     }
     
+    
+    private func compare() {
+        
+    }
+    
+    
     private func playerAction(_ data: GameDataModel) {
-        let result = self.cellLogic.handleGameUpdate(mapState: data)
-        let myData = PlayerAction(key: "player_action", data: PlayerData(cells: [PlayerCell(id: (result?.myCells.first?.cellId ?? ""), velocity: PlayerVelocity(x: (result?.myCells.first?.velocity?.x ?? 0), y: (result?.myCells.first?.velocity?.y ?? 0)), speed: (result?.myCells.first?.speed ?? 0), growIntention: PlayerGrowIntention(eatEfficiency: (result?.myCells.first?.growIntention?.eatEfficiency ?? 0), maxSpeed: (result?.myCells.first?.growIntention?.maxSpeed ?? 0), power: (result?.myCells.first?.growIntention?.power ?? 0), mass: (result?.myCells.first?.growIntention?.mass ?? 0), volatilization: (result?.myCells.first?.growIntention?.volatilization ?? 0)))]))
+        if let result = self.cellLogic.handleGameUpdate(mapState: data) {
+            if result.isEmpty {
+                print("empty")
+            } else {
+                let myData = PlayerAction(key: "player_action", data: PlayerData(cells: result))
+                
+                print(myData)
 
-        print(myData)
-
-        do {
-            let jsonData = try JSONEncoder().encode(myData)
-            self.socket.write(data: jsonData)
-        } catch {
-            print("Error: cannot create JSON")
-            return
+                do {
+                    let jsonData = try JSONEncoder().encode(myData)
+                    self.socket.write(data: jsonData)
+                } catch {
+                    print("Error: cannot create JSON")
+                    return
+                }
+            }
         }
+        
+        
+//        (cells: [PlayerCell(id: (result?.myCells.first?.cellId ?? ""), velocity: PlayerVelocity(x: (result?.myCells.first?.velocity?.x ?? 0), y: (result?.myCells.first?.velocity?.y ?? 0)), speed: (result?.myCells.first?.speed ?? 0), growIntention: PlayerGrowIntention(eatEfficiency: (result?.myCells.first?.growIntention?.eatEfficiency ?? 0), maxSpeed: (result?.myCells.first?.growIntention?.maxSpeed ?? 0), power: (result?.myCells.first?.growIntention?.power ?? 0), mass: (result?.myCells.first?.growIntention?.mass ?? 0), volatilization: (result?.myCells.first?.growIntention?.volatilization ?? 0)))])
+
+
     }
     
     

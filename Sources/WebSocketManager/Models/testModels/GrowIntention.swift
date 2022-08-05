@@ -7,14 +7,14 @@
 
 import Foundation
 
-public struct GrowIntention{
+public struct GrowIntention: Codable{
     public var eatEfficiency: Double?
     public var maxSpeed: Double?
     public var power: Double?
     public var mass: Double?
     public var volatilization: Double?
     
-    public init(eatEfficiency: Double, maxSpeed: Double, power: Double, mass: Double, volatilization: Double){
+    public init(eatEfficiency: Double? = nil, maxSpeed: Double? = nil, power: Double? = nil, mass: Double? = nil, volatilization: Double? = nil){
         self.eatEfficiency = eatEfficiency
         self.maxSpeed = maxSpeed
         self.power = power

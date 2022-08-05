@@ -15,7 +15,7 @@ struct PlayerAction: Codable {
 
 // MARK: - DataClass
 struct PlayerData: Codable {
-    let cells: [PlayerCell]
+    let cells: [CellActivity]
 }
 
 // MARK: - Cell

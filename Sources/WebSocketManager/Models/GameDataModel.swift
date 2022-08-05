@@ -26,7 +26,7 @@ public struct Cell: Codable {
     public let canSplit: Bool?
     public let radius: Double?
     public let velocity: Velocity?
-    public let speed: Int?
+    public let speed: Double?
     public let direction: Position?
     public let availableEnergy, eatEfficiency: Double?
     public let maxSpeed: Int?
@@ -37,9 +37,6 @@ public struct Cell: Codable {
     public let own: Bool?
 }
 
-//public struct Direction: Codable {
-//    public let x, y: Double?
-//}
 
 public struct FoodData: Codable {
     public let id: String?
@@ -51,15 +48,21 @@ public struct Position: Codable {
     public var x: Double?
     public var y: Double?
     
+    public init (x: Double, y: Double){
+        self.x = x
+        self.y = y
+    }
+    
     public func distanceToPosition(target: Position) -> Double {
         return distanceBetweenPoints(position1: self, position2: target)
     }
 
     func distanceBetweenPoints(position1: Position, position2: Position) -> Double {
-        let x1 = position1.x!
-        let y1 = position1.y!
-        let x2 = position2.x!
-        let y2 = position2.y!
+        guard let x1 = position1.x,
+              let y1 = position1.y,
+              let x2 = position2.x,
+              let y2 = position2.y
+        else { return 0}
         return distanceBetweenPoints(x1: x1, y1: y1, x2: x2, y2: y2)
     }
 
@@ -78,10 +81,11 @@ public struct Velocity: Codable {
     }
 
     public func moveToPosition(target: Position) -> Velocity {
-        let fromX = self.x
-        let fromY = self.y
-        let targetX = target.x!
-        let targetY = target.y!
-        return Velocity(x: targetX - fromX!, y: targetY - fromY!)
+        guard let targetX = target.x,
+              let targetY = target.y,
+              let fromX = self.x,
+              let fromY = self.y
+        else { return Velocity(x: 0, y: 0)}
+        return Velocity(x: targetX - fromX, y: targetY - fromY)
     }
 }

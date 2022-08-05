@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DesiredCellsState {
+public struct DesiredCellsState: Codable {
     public var myCells: [CellActivity]
     
     public init(cell: [CellActivity]) {
