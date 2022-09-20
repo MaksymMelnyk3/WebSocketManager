@@ -8,11 +8,17 @@ public class WebSocketManager {
     var connectedModel: ConnectedModel?
     var gameConfigModel: GameConfigModel?
     var gameDataModel: GameDataModel?
+    
+    public var food: [FoodData]?
+    public var cell: [Cell]?
+    
+    private var globalSettings = GlobalSettings()
 
     private var cellLogic: CellLogic
     
     public init(cellLogic: CellLogic){
         self.cellLogic = cellLogic
+        globalSettings.clearData()
         del()
     }
 
@@ -61,10 +67,37 @@ public class WebSocketManager {
                 self.cellLogic.configure(gameConfig: configData)
             case Keys.data.rawValue:
                 guard let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data) else { return }
-                
                 print(text)
                 self.dataReceived(tick: gameData.data?.tick ?? 0)
                 self.playerAction(gameData)
+                
+                
+                if let cells = gameData.data?.cells?.filter({ $0.isNew ?? false }) {
+                    cells.forEach { cell in
+                        self.globalSettings.cell.append(cell)
+                    }
+                } else if let cells = gameData.data?.cells?.filter({ $0.del ?? false }) {
+                    for x in 0..<(gameData.data?.cells!.count)! {
+                        cells.forEach { cell in
+                            if gameData.data?.cells?[x].id == cell.id {
+                                self.globalSettings.cell.remove(at: x)
+                            }
+                        }
+                    }
+                }
+                if let foods = gameData.data?.food?.filter({ $0.isNew ?? false }) {
+                    foods.forEach { food in
+                        self.globalSettings.food.append(food)
+                    }
+                } else if let foods = gameData.data?.food?.filter({ $0.del ?? false }) {
+                    for x in 0..<(gameData.data?.food?.count)! {
+                        foods.forEach { food in
+                            if gameData.data?.food?[x].id == food.id {
+                                self.globalSettings.food.remove(at: x)
+                            }
+                        }
+                    }
+                }
             default:
                 print("raw")
             }
@@ -95,11 +128,6 @@ public class WebSocketManager {
                 }
             }
         }
-        
-        
-//        (cells: [PlayerCell(id: (result?.myCells.first?.cellId ?? ""), velocity: PlayerVelocity(x: (result?.myCells.first?.velocity?.x ?? 0), y: (result?.myCells.first?.velocity?.y ?? 0)), speed: (result?.myCells.first?.speed ?? 0), growIntention: PlayerGrowIntention(eatEfficiency: (result?.myCells.first?.growIntention?.eatEfficiency ?? 0), maxSpeed: (result?.myCells.first?.growIntention?.maxSpeed ?? 0), power: (result?.myCells.first?.growIntention?.power ?? 0), mass: (result?.myCells.first?.growIntention?.mass ?? 0), volatilization: (result?.myCells.first?.growIntention?.volatilization ?? 0)))])
-
-
     }
     
     

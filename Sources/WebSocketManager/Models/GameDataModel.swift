@@ -35,6 +35,7 @@ public struct Cell: Codable {
     public let canMerge: Bool?
     public let position: Position?
     public let own: Bool?
+    public let del: Bool?
 }
 
 
@@ -42,6 +43,7 @@ public struct FoodData: Codable {
     public let id: String?
     public let isNew: Bool?
     public let position: Position?
+    public let del: Bool?
 }
 
 public struct Position: Codable {
