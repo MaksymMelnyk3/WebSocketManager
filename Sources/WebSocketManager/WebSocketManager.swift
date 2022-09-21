@@ -55,49 +55,51 @@ public class WebSocketManager {
             print("coonect")
         }
         
-        socket.onText = { text in
+        socket.onText = { [weak self] text in
             guard let data = text.data(using: .utf8) else { return }
             guard let gameData = try? JSONDecoder().decode(KeyModel.self, from: data) else { return }
             switch gameData.key {
             case Keys.connected.rawValue:
                 let connectData = try? JSONDecoder().decode(ConnectedModel.self, from: data)
-                self.connectedModel = connectData
+                self?.connectedModel = connectData
             case Keys.config.rawValue:
                 guard let configData = try? JSONDecoder().decode(GameConfigModel.self, from: data) else { return }
-                self.cellLogic.configure(gameConfig: configData)
+                self?.cellLogic.configure(gameConfig: configData)
             case Keys.data.rawValue:
                 guard let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data) else { return }
                 print(text)
-                self.dataReceived(tick: gameData.data?.tick ?? 0)
-                self.playerAction(gameData)
+                self?.dataReceived(tick: gameData.data?.tick ?? 0)
+                self?.playerAction(gameData)
                 
+                var cells = self?.globalSettings.cell ?? []
                 
-                if let cells = gameData.data?.cells?.filter({ $0.isNew ?? false }) {
-                    cells.forEach { cell in
-                        self.globalSettings.cell.append(cell)
+                if let deeltedCells = gameData.data?.cells?.filter({ $0.del ?? false }) {
+                    deeltedCells.forEach { cell in
+                        cells.removeAll(where: { $0.id == cell.id })
                     }
-                } else if let cells = gameData.data?.cells?.filter({ $0.del ?? false }) {
-                    for x in 0..<(gameData.data?.cells!.count)! {
-                        cells.forEach { cell in
-                            if gameData.data?.cells?[x].id == cell.id {
-                                self.globalSettings.cell.remove(at: x)
-                            }
+                }
+                
+                if let updatedCells = gameData.data?.cells?.filter({ cell in
+                    (cell.isNew == false || cell.isNew == nil) &&
+                    (cell.del == false ||  cell.del == nil)
+                }) {
+                    updatedCells.forEach { cell in
+                        if let index = cells.firstIndex(where: { cell.id == $0.id } ) {
+                            cells[index] = cell
                         }
                     }
                 }
-                if let foods = gameData.data?.food?.filter({ $0.isNew ?? false }) {
-                    foods.forEach { food in
-                        self.globalSettings.food.append(food)
-                    }
-                } else if let foods = gameData.data?.food?.filter({ $0.del ?? false }) {
-                    for x in 0..<(gameData.data?.food?.count)! {
-                        foods.forEach { food in
-                            if gameData.data?.food?[x].id == food.id {
-                                self.globalSettings.food.remove(at: x)
-                            }
+                
+                if let newCells = gameData.data?.cells?.filter({ $0.isNew ?? false }) {
+                    newCells.forEach { cell in
+                        if !cells.contains(where: { $0.id == cell.id }) {
+                            cells.append(cell)
                         }
                     }
                 }
+                
+                self?.globalSettings.cell = cells
+                
             default:
                 print("raw")
             }
