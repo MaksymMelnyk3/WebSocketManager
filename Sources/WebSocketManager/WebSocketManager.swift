@@ -9,13 +9,11 @@ public class WebSocketManager {
     var gameConfigModel: GameConfigModel?
     var gameDataModel: GameDataModel?
     
-    public var food: [FoodData]?
-    public var cell: [Cell]?
-    
     private var globalSettings = GlobalSettings()
 
     private var cellLogic: CellLogic
     
+
     public init(cellLogic: CellLogic){
         self.cellLogic = cellLogic
         globalSettings.clearData()
@@ -69,36 +67,12 @@ public class WebSocketManager {
                 guard let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data) else { return }
                 print(text)
                 self?.dataReceived(tick: gameData.data?.tick ?? 0)
-                self?.playerAction(gameData)
                 
-                var cells = self?.globalSettings.cell ?? []
+                self?.globalSettings.ticksOperation(gameData: gameData)
+                self?.globalSettings.cellsOperation(gameData: gameData)
+                self?.globalSettings.foodsOperation(gameData: gameData)
                 
-                if let deeltedCells = gameData.data?.cells?.filter({ $0.del ?? false }) {
-                    deeltedCells.forEach { cell in
-                        cells.removeAll(where: { $0.id == cell.id })
-                    }
-                }
-                
-                if let updatedCells = gameData.data?.cells?.filter({ cell in
-                    (cell.isNew == false || cell.isNew == nil) &&
-                    (cell.del == false ||  cell.del == nil)
-                }) {
-                    updatedCells.forEach { cell in
-                        if let index = cells.firstIndex(where: { cell.id == $0.id } ) {
-                            cells[index] = cell
-                        }
-                    }
-                }
-                
-                if let newCells = gameData.data?.cells?.filter({ $0.isNew ?? false }) {
-                    newCells.forEach { cell in
-                        if !cells.contains(where: { $0.id == cell.id }) {
-                            cells.append(cell)
-                        }
-                    }
-                }
-                
-                self?.globalSettings.cell = cells
+                self?.playerAction()
                 
             default:
                 print("raw")
@@ -112,8 +86,8 @@ public class WebSocketManager {
     }
     
     
-    private func playerAction(_ data: GameDataModel) {
-        if let result = self.cellLogic.handleGameUpdate(mapState: data) {
+    private func playerAction() {
+        if let result = self.cellLogic.handleGameUpdate(mapState: UserData(food: globalSettings.food, cell: globalSettings.cell, tick: globalSettings.tick, lastResivedTick: globalSettings.lastTick)) {
             if result.isEmpty {
                 print("empty")
             } else {
