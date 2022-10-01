@@ -87,7 +87,7 @@ public class WebSocketManager {
     
     
     private func playerAction() {
-        if let result = self.cellLogic.handleGameUpdate(mapState: UserData(food: globalSettings.food, cell: globalSettings.cell, tick: globalSettings.tick, lastResivedTick: globalSettings.lastTick)) {
+        if let result = self.cellLogic.handleGameUpdate(mapState: MapState(food: globalSettings.food, cell: globalSettings.cell, tick: globalSettings.tick, lastResivedTick: globalSettings.lastTick)) {
             if result.isEmpty {
                 print("empty")
             } else {

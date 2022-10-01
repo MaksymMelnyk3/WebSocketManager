@@ -8,11 +8,11 @@
 import Foundation
 
 
-public struct UserData{
-    var tick: Int
-    var lastResivedTick: Int
-    var food: [FoodData]
-    var cell: [Cell]
+public struct MapState{
+    public var tick: Int
+    public var lastResivedTick: Int
+    public var food: [FoodData]
+    public var cell: [Cell]
     
     init(food: [FoodData], cell: [Cell], tick: Int, lastResivedTick: Int){
         self.food = food
