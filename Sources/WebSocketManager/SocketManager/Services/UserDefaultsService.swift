@@ -77,7 +77,11 @@ public class GlobalSettings {
         }) {
             updatedCells.forEach { cell in
                 if let index = cells.firstIndex(where: { cell.id == $0.id } ) {
-                    cells[index].update(cell: cell)
+                    var cellToUpdate = cells[index]
+
+                    cellToUpdate.update(cell: cell)
+
+                    cells[index] = cellToUpdate
                 }
             }
         }
@@ -109,7 +113,12 @@ public class GlobalSettings {
         }) {
             updatedFoods.forEach { food in
                 if let index = foods.firstIndex(where: { food.id == $0.id } ) {
-                    foods[index].update(food: food)
+                    
+                    var foodToUpdate = foods[index]
+
+                    foodToUpdate.update(food: food)
+
+                    foods[index] = foodToUpdate
                 }
             }
         }
