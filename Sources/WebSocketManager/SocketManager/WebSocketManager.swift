@@ -16,7 +16,6 @@ public class WebSocketManager {
 
     public init(cellLogic: CellLogic){
         self.cellLogic = cellLogic
-        globalSettings.clearData()
         del()
     }
 
