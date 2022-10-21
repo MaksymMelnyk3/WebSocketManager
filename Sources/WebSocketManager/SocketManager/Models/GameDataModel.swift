@@ -19,29 +19,31 @@ public struct DataClass: Codable {
 }
 
 public struct Cell: Codable {
-    public let id: String?
-    public let isNew: Bool?
-    public let player: String?
-    public let mass: Int?
-    public let canSplit: Bool?
-    public let radius: Double?
-    public let velocity: Velocity?
-    public let speed: Double?
-    public let direction: Position?
-    public let availableEnergy, eatEfficiency: Double?
-    public let maxSpeed: Int?
-    public let power, volatilization: Double?
-    public let mergeTimer: Int?
-    public let canMerge: Bool?
-    public let position: Position?
-    public let own: Bool?
+    public var id: String?
+    public var isNew: Bool?
+    public var player: String?
+    public var mass: Int?
+    public var canSplit: Bool?
+    public var radius: Double?
+    public var velocity: Velocity?
+    public var speed: Double?
+    public var direction: Position?
+    public var availableEnergy, eatEfficiency: Double?
+    public var maxSpeed: Int?
+    public var power, volatilization: Double?
+    public var mergeTimer: Int?
+    public var canMerge: Bool?
+    public var position: Position?
+    public var own: Bool?
+    public var del: Bool?
 }
 
 
 public struct FoodData: Codable {
-    public let id: String?
-    public let isNew: Bool?
-    public let position: Position?
+    public var id: String?
+    public var isNew: Bool?
+    public var position: Position?
+    public var del: Bool?
 }
 
 public struct Position: Codable {

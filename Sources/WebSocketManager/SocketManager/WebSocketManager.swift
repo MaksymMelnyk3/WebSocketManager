@@ -8,9 +8,12 @@ public class WebSocketManager {
     var connectedModel: ConnectedModel?
     var gameConfigModel: GameConfigModel?
     var gameDataModel: GameDataModel?
+    
+    private var globalSettings = GlobalSettings()
 
     private var cellLogic: CellLogic
     
+
     public init(cellLogic: CellLogic){
         self.cellLogic = cellLogic
         del()
@@ -49,22 +52,27 @@ public class WebSocketManager {
             print("coonect")
         }
         
-        socket.onText = { text in
+        socket.onText = { [weak self] text in
             guard let data = text.data(using: .utf8) else { return }
             guard let gameData = try? JSONDecoder().decode(KeyModel.self, from: data) else { return }
             switch gameData.key {
             case Keys.connected.rawValue:
                 let connectData = try? JSONDecoder().decode(ConnectedModel.self, from: data)
-                self.connectedModel = connectData
+                self?.connectedModel = connectData
             case Keys.config.rawValue:
                 guard let configData = try? JSONDecoder().decode(GameConfigModel.self, from: data) else { return }
-                self.cellLogic.configure(gameConfig: configData)
+                self?.cellLogic.configure(gameConfig: configData)
             case Keys.data.rawValue:
                 guard let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data) else { return }
-                
                 print(text)
-                self.dataReceived(tick: gameData.data?.tick ?? 0)
-                self.playerAction(gameData)
+                self?.dataReceived(tick: gameData.data?.tick ?? 0)
+                
+                self?.globalSettings.ticksOperation(gameData: gameData)
+                self?.globalSettings.cellsOperation(gameData: gameData)
+                self?.globalSettings.foodsOperation(gameData: gameData)
+                
+                self?.playerAction()
+                
             default:
                 print("raw")
             }
@@ -77,8 +85,8 @@ public class WebSocketManager {
     }
     
     
-    private func playerAction(_ data: GameDataModel) {
-        if let result = self.cellLogic.handleGameUpdate(mapState: data) {
+    private func playerAction() {
+        if let result = self.cellLogic.handleGameUpdate(mapState: MapState(food: globalSettings.food, cell: globalSettings.cell, tick: globalSettings.tick, lastResivedTick: globalSettings.lastTick)) {
             if result.isEmpty {
                 print("empty")
             } else {
@@ -95,11 +103,6 @@ public class WebSocketManager {
                 }
             }
         }
-        
-        
-//        (cells: [PlayerCell(id: (result?.myCells.first?.cellId ?? ""), velocity: PlayerVelocity(x: (result?.myCells.first?.velocity?.x ?? 0), y: (result?.myCells.first?.velocity?.y ?? 0)), speed: (result?.myCells.first?.speed ?? 0), growIntention: PlayerGrowIntention(eatEfficiency: (result?.myCells.first?.growIntention?.eatEfficiency ?? 0), maxSpeed: (result?.myCells.first?.growIntention?.maxSpeed ?? 0), power: (result?.myCells.first?.growIntention?.power ?? 0), mass: (result?.myCells.first?.growIntention?.mass ?? 0), volatilization: (result?.myCells.first?.growIntention?.volatilization ?? 0)))])
-
-
     }
     
     

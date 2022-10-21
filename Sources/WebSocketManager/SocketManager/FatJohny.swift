@@ -18,23 +18,22 @@ public class FatJohny: CellLogic {
         self.gameConfig = gameConfig
     }
     
-    public func handleGameUpdate(mapState: GameDataModel) -> [CellActivity]? {
-        return mapState.data?.cells.map({ myCell in
-            let from = myCell.first?.velocity
-            let target = findClosestFood(mapState: mapState, myCell: myCell.first!)?.position
+    public func handleGameUpdate(mapState: MapState) -> [CellActivity]? {
+        return mapState.cell.map({ myCell in
+            let from = myCell.velocity
+            let target = findClosestFood(mapState: mapState, myCell: myCell)?.position
             
             let velocity = from?.moveToPosition(target: target ?? Position(x: 0, y: 0))
             
-            let cellActivity = CellActivity(cellId: (myCell.first?.id)!, speed: 1.0, velocity: velocity, growIntention: GrowIntention(mass: myCell.first?.availableEnergy))
-            
-            return [cellActivity]
+            let cellActivity = CellActivity(cellId: (myCell.id)!, speed: 1.0, velocity: velocity, growIntention: GrowIntention(mass: myCell.availableEnergy))
+            return cellActivity
         })
     }
     
-    func findClosestFood(mapState: GameDataModel, myCell: Cell) -> FoodData? {
-        let distanceWithFood = mapState.data?.food.map({ food -> (Double?, FoodData?) in
-            let distance = food.first?.position?.distanceToPosition(target: myCell.position!)
-            return (distance, food.first)
+    func findClosestFood(mapState: MapState, myCell: Cell) -> FoodData? {
+        let distanceWithFood = mapState.food.map({ food -> (Double?, FoodData?) in
+            let distance = food.position?.distanceToPosition(target: myCell.position ?? Position(x: 1, y: 1))
+            return (distance, food)
         })
         
         var closestFood: (Double?, FoodData?)? = nil
