@@ -22,7 +22,7 @@ public struct Cell: Codable {
     public var id: String?
     public var isNew: Bool?
     public var player: String?
-    public var mass: Int?
+    public var mass: Double?
     public var canSplit: Bool?
     public var radius: Double?
     public var velocity: Velocity?

@@ -54,16 +54,16 @@ public class WebSocketManager {
         
         socket.onText = { [weak self] text in
             guard let data = text.data(using: .utf8) else { return }
-            guard let gameData = try? JSONDecoder().decode(KeyModel.self, from: data) else { return }
+            guard let gameData: KeyModel = self?.decode(data: data) else { return }
             switch gameData.key {
             case Keys.connected.rawValue:
-                let connectData = try? JSONDecoder().decode(ConnectedModel.self, from: data)
+                let connectData: ConnectedModel? = self?.decode(data: data)
                 self?.connectedModel = connectData
             case Keys.config.rawValue:
-                guard let configData = try? JSONDecoder().decode(GameConfigModel.self, from: data) else { return }
+                guard let configData: GameConfigModel = self?.decode(data: data) else { return }
                 self?.cellLogic.configure(gameConfig: configData)
             case Keys.data.rawValue:
-                guard let gameData = try? JSONDecoder().decode(GameDataModel.self, from: data) else { return }
+                guard let gameData: GameDataModel = self?.decode(data: data) else { return }
                 print(text)
                 self?.dataReceived(tick: gameData.data?.tick ?? 0)
                 
@@ -79,11 +79,14 @@ public class WebSocketManager {
         }
     }
     
-    
-    private func compare() {
-        
+    private func decode<T: Decodable>(data: Data) -> T? {
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            print(error)
+            return nil
+        }
     }
-    
     
     private func playerAction() {
         if let result = self.cellLogic.handleGameUpdate(mapState: MapState(food: globalSettings.food, cell: globalSettings.cell, tick: globalSettings.tick, lastResivedTick: globalSettings.lastTick)) {
