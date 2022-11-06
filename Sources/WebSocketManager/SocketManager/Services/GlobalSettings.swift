@@ -15,6 +15,8 @@ public class GlobalSettings {
     var tick: Int = 0
     var lastTick: Int = 0
     
+    public init() {}
+    
     func ticksOperation(gameData: GameDataModel) {
         if let tick = gameData.data?.tick {
             self.tick = tick
