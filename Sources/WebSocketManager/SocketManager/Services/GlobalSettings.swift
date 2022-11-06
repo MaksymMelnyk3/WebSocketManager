@@ -10,10 +10,10 @@
 import Foundation
 
 public class GlobalSettings {
-    var food: [FoodData] = []
-    var cell: [Cell] = []
-    var tick: Int = 0
-    var lastTick: Int = 0
+    public var food: [FoodData] = []
+    public var cell: [Cell] = []
+    public var tick: Int = 0
+    public var lastTick: Int = 0
     
     public init() {}
     
