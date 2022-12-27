@@ -59,6 +59,7 @@ public class WebSocketManager {
             case Keys.connected.rawValue:
                 let connectData: ConnectedModel? = self?.decode(data: data)
                 self?.connectedModel = connectData
+                self?.globalSettings.playerId = connectData?.data?.playerID
             case Keys.config.rawValue:
                 guard let configData: GameConfigModel = self?.decode(data: data) else { return }
                 self?.cellLogic.configure(gameConfig: configData)

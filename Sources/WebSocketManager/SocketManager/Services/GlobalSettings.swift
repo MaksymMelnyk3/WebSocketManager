@@ -10,6 +10,7 @@
 import Foundation
 
 public class GlobalSettings {
+    public var playerId: String?
     public var food: [FoodData] = []
     public var cell: [Cell] = []
     public var tick: Int = 0
@@ -28,6 +29,10 @@ public class GlobalSettings {
     }
     
     func cellsOperation(gameData: GameDataModel) {
+        guard let playerId = playerId else {
+            print("The player id was not set")
+            return
+        }
         var cells = self.cell
         if let deeltedCells = gameData.data?.cells?.filter({ $0.del ?? false }) {
             deeltedCells.forEach { cell in
@@ -44,7 +49,9 @@ public class GlobalSettings {
                     var cellToUpdate = cells[index]
                     
                     cellToUpdate.update(cell: cell)
-                    
+                    if cell.own == nil {
+                        cellToUpdate.own = cellToUpdate.player == playerId
+                    }
                     cells[index] = cellToUpdate
                 }
             }
