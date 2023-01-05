@@ -12,7 +12,7 @@ struct ConnectedModel: Decodable {
     let data: DataConnect?
 }
 
-struct DataConnect: Codable {
+struct DataConnect: Decodable {
     let playerID: String?
     
     enum CodingKeys: String, CodingKey {

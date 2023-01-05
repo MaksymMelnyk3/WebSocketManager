@@ -8,12 +8,12 @@
 import Foundation
 
 
-public protocol CellLogic{
+public protocol CellLogic {
     
-    var gameConfig: GameConfigModel? { get set }
+    var gameConfig: GameConfig? { get set }
     
-    func configure(gameConfig: GameConfigModel)
+    func configure(gameConfig: GameConfig)
     
-    func handleGameUpdate(mapState: MapState) -> [CellActivity]?
+    func handleGameUpdate(mapState: MapState) -> [CellActivity]
 
 }
