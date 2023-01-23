@@ -26,7 +26,7 @@ public class FatJohny: CellLogic {
                 return CellActivity(cellId: myCell.id)
             }
             let velocity = myCell.position.moveTo(target: target)
-            let cellActivity = CellActivity(cellId: myCell.id, speed: 5.0, velocity: velocity, growIntention: GrowIntention(mass: myCell.availableEnergy), additionalAction: .init(split: true, merge: nil))
+            let cellActivity = CellActivity(cellId: myCell.id, speed: 5.0, velocity: velocity, growIntention: GrowIntention(mass: myCell.availableEnergy))
             return cellActivity
         })
     }

@@ -8,42 +8,42 @@
 import Foundation
 
 public struct GameConfig {
-    let tickTime, ticksLimit: Int
-    let map: MapConfig
-    let cell: CellConfig
-    let food: FoodConfig
+    public let tickTime, ticksLimit: Int
+    public let map: MapConfig
+    public let cell: CellConfig
+    public let food: FoodConfig
 }
 
 public struct CellConfig {
     // radius = Sqrt(mass / PI) * massToRadius
-    let massToRadius: Double
+    public let massToRadius: Double
     // mass difference needed to eat another cell
-    let toEatDiff: Double
+    public let toEatDiff: Double
     // cells must cross on this value to eat:
     // (cell_1.radius * collisionOffset + cell_2.radius * collisionOffset) < distance
-    let collisionOffset: Double
-    let minEatEfficiency: Double
-    let maxEatEfficiency: Double
-    let energyToEatEfficiency: Double // energy exchange rate for eat efficiency
-    let minMass: Double
-    let maxMass: Double
-    let energyToMass: Double
-    let minSpeed: Double
-    let maxSpeed: Double
-    let energyToMaxSpeed: Double
+    public let collisionOffset: Double
+    public let minEatEfficiency: Double
+    public let maxEatEfficiency: Double
+    public let energyToEatEfficiency: Double // energy exchange rate for eat efficiency
+    public let minMass: Double
+    public let maxMass: Double
+    public let energyToMass: Double
+    public let minSpeed: Double
+    public let maxSpeed: Double
+    public let energyToMaxSpeed: Double
     // acceleration
-    let minPower: Double
-    let maxPower: Double
-    let energyToPower: Double
-    let maxVolatilization: Double
-    let minVolatilization: Double
-    let energyToVolatilization: Double
+    public let minPower: Double
+    public let maxPower: Double
+    public let energyToPower: Double
+    public let maxVolatilization: Double
+    public let minVolatilization: Double
+    public let energyToVolatilization: Double
 }
 
-struct MapConfig {
-    let width, height: Int
+public struct MapConfig {
+    public let width, height: Int
 }
 
-struct FoodConfig {
-    let mass: Double
+public struct FoodConfig {
+    public let mass: Double
 }
