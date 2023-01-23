@@ -12,44 +12,44 @@ public class FatJohny: CellLogic {
     
     public init(){}
     
-    public var gameConfig: GameConfigModel?
+    public var gameConfig: GameConfig?
     
-    public func configure(gameConfig: GameConfigModel) {
+    public func configure(gameConfig: GameConfig) {
         self.gameConfig = gameConfig
     }
     
-    public func handleGameUpdate(mapState: MapState) -> [CellActivity]? {
+    public func handleGameUpdate(mapState: MapState) -> [CellActivity] {
+        
         return mapState.cell.map({ myCell in
-            let from = myCell.velocity
-            let target = findClosestFood(mapState: mapState, myCell: myCell)?.position
-            
-            let velocity = from?.moveToPosition(target: target ?? Position(x: 0, y: 0))
-            
-            let cellActivity = CellActivity(cellId: (myCell.id)!, speed: 1.0, velocity: velocity, growIntention: GrowIntention(mass: myCell.availableEnergy))
+            guard let target = myCell.findClosestFood(from: mapState.food)?.position
+            else {
+                return CellActivity(cellId: myCell.id)
+            }
+            let velocity = myCell.position.moveTo(target: target)
+            let cellActivity = CellActivity(cellId: myCell.id, speed: 5.0, velocity: velocity, growIntention: GrowIntention(mass: myCell.availableEnergy), additionalAction: .init(split: true, merge: nil))
             return cellActivity
         })
     }
-    
-    func findClosestFood(mapState: MapState, myCell: Cell) -> FoodData? {
-        let distanceWithFood = mapState.food.map({ food -> (Double?, FoodData?) in
-            let distance = food.position?.distanceToPosition(target: myCell.position ?? Position(x: 1, y: 1))
-            return (distance, food)
-        })
-        
-        var closestFood: (Double?, FoodData?)? = nil
-        distanceWithFood.map {
-            if closestFood == nil{
-                closestFood = $0
-            } else {
-                if $0.0! < Double((closestFood?.0)!) {
-                    closestFood = $0
-                }
-            }
-        }
-        
-        return (closestFood?.1!)
-        
+}
+
+private extension Coordinates {
+    func moveTo(target: Coordinates) -> Coordinates {
+        return Coordinates(x: target.x - x, y: target.y - y)
     }
     
-    
+    func distanceToPosition(target: Coordinates) -> Double {
+        return sqrt(((target.y - y) * (target.y - y) + (target.x - x) * (target.x - x)))
+    }
 }
+
+private extension Cell {
+    func findClosestFood(from foodArray: [Food]) -> Food? {
+        foodArray
+            .sorted {
+                $0.position.distanceToPosition(target: position) < $1.position.distanceToPosition(target: position)
+                
+            }
+            .first
+    }
+}
+

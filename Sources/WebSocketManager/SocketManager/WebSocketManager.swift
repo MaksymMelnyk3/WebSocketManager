@@ -3,18 +3,14 @@ import Starscream
 
 @available(iOS 13.0, *)
 public class WebSocketManager {
+    private let socket = WebSocket(request: URLRequest(url: URL(string: "http://45.77.67.171/")!))
     
-    var socket = WebSocket(request: URLRequest(url: URL(string: "http://45.77.67.171/")!))
-    var connectedModel: ConnectedModel?
-    var gameConfigModel: GameConfigModel?
-    var gameDataModel: GameDataModel?
-    
-    private var globalSettings = GlobalSettings()
+    private var gameState = GameState()
 
-    private var cellLogic: CellLogic
+    private let cellLogic: CellLogic
     
 
-    public init(cellLogic: CellLogic){
+    public init(cellLogic: CellLogic) {
         self.cellLogic = cellLogic
         del()
     }
@@ -27,17 +23,14 @@ public class WebSocketManager {
     public func connect(roomName: String, watch: Bool) {
         socket.connect()
         DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
-            let myData: [String: Any] = ["key": "connect_to_room", "data": ["room_name": roomName, "watch": watch]]
-            
-            print(myData)
-
-            let myJSON: Data
-
+        let connectModel = ConnectModel(data: ConnectDataModel(roomName: roomName, watch: watch))
             do {
-                myJSON = try JSONSerialization.data(withJSONObject: myData, options: [])
+                let encoder = JSONEncoder()
+                encoder.keyEncodingStrategy = .convertToSnakeCase
+                let connectData = try encoder.encode(connectModel)
                 if self.socket.isConnected {
-                    self.socket.write(data: myJSON)
-                }else{
+                    self.socket.write(data: connectData)
+                } else {
                     self.socket.connect()
                 }
             } catch {
@@ -53,23 +46,23 @@ public class WebSocketManager {
         }
         
         socket.onText = { [weak self] text in
-            guard let data = text.data(using: .utf8) else { return }
-            guard let gameData: KeyModel = self?.decode(data: data) else { return }
+            guard let data = text.data(using: .utf8),
+                  let gameData: KeyModel = self?.decode(data: data)
+            else { return }
             switch gameData.key {
             case Keys.connected.rawValue:
                 let connectData: ConnectedModel? = self?.decode(data: data)
-                self?.connectedModel = connectData
+                self?.gameState.playerId = connectData?.data?.playerID
             case Keys.config.rawValue:
-                guard let configData: GameConfigModel = self?.decode(data: data) else { return }
-                self?.cellLogic.configure(gameConfig: configData)
+                guard let configData: GameConfigDTO = self?.decode(data: data) else { return }
+                self?.cellLogic.configure(gameConfig: GameConfig(with: configData.data))
             case Keys.data.rawValue:
                 guard let gameData: GameDataModel = self?.decode(data: data) else { return }
-                print(text)
                 self?.dataReceived(tick: gameData.data?.tick ?? 0)
                 
-                self?.globalSettings.ticksOperation(gameData: gameData)
-                self?.globalSettings.cellsOperation(gameData: gameData)
-                self?.globalSettings.foodsOperation(gameData: gameData)
+                self?.gameState.ticksOperation(gameData: gameData)
+                self?.gameState.cellsOperation(gameData: gameData)
+                self?.gameState.foodsOperation(gameData: gameData)
                 
                 self?.playerAction()
                 
@@ -89,13 +82,31 @@ public class WebSocketManager {
     }
     
     private func playerAction() {
-        if let result = self.cellLogic.handleGameUpdate(mapState: MapState(food: globalSettings.food, cell: globalSettings.cell, tick: globalSettings.tick, lastResivedTick: globalSettings.lastTick)) {
+        print(gameState.tick)
+        let result = self.cellLogic.handleGameUpdate(mapState: MapState(food: gameState.food, cell: gameState.cell, tick: gameState.tick, lastResivedTick: gameState.lastTick))
             if result.isEmpty {
                 print("empty")
             } else {
-                let myData = PlayerAction(key: "player_action", data: PlayerData(cells: result))
-                
-                print(myData)
+                let playerData = PlayerData(
+                    cells: result.map( { CellActivityDTO(
+                        cellId: $0.id,
+                        speed: $0.speed,
+                        velocity: .init(
+                            x: $0.velocity?.x,
+                            y: $0.velocity?.y
+                        ),
+                        growIntention: .init(
+                            eatEfficiency: $0.growIntention?.eatEfficiency,
+                            maxSpeed: $0.growIntention?.maxSpeed,
+                            power: $0.growIntention?.power,
+                            mass: $0.growIntention?.mass,
+                            volatilization: $0.growIntention?.volatilization),
+                        additionalAction: .init(
+                            split: $0.additionalAction?.split,
+                            merge: $0.additionalAction?.merge
+                            )
+                        )}))
+                let myData = PlayerAction(key: "player_action", data: playerData)
 
                 do {
                     let jsonData = try JSONEncoder().encode(myData)
@@ -106,13 +117,10 @@ public class WebSocketManager {
                 }
             }
         }
-    }
     
     
-    private func dataReceived(tick: Int){
+    private func dataReceived(tick: Int) {
         let myData: [String: Any] = ["key": "data_received", "data": ["tick": tick]]
-        
-        print(myData)
 
         let myJSON: Data
 
@@ -123,5 +131,40 @@ public class WebSocketManager {
             print("Error: cannot create JSON")
             return
         }
+    }
+}
+
+private extension GameConfig {
+    init(with dataConfigDTO: DataConfigDTO) {
+        tickTime = dataConfigDTO.tickTime
+        ticksLimit = dataConfigDTO.ticksLimit
+        map = MapConfig(
+            width: dataConfigDTO.map.width,
+            height: dataConfigDTO.map.height
+        )
+        
+        let cellConfig = dataConfigDTO.cell
+        cell = CellConfig(
+            massToRadius: cellConfig.massToRadius,
+            toEatDiff: cellConfig.toEatDiff,
+            collisionOffset: cellConfig.collisionOffset,
+            minEatEfficiency: cellConfig.minEatEfficiency,
+            maxEatEfficiency: cellConfig.maxEatEfficiency,
+            energyToEatEfficiency: cellConfig.energyToEatEfficiency,
+            minMass: cellConfig.minMass,
+            maxMass: cellConfig.maxMass,
+            energyToMass: cellConfig.energyToMass,
+            minSpeed: cellConfig.minSpeed,
+            maxSpeed: cellConfig.maxSpeed,
+            energyToMaxSpeed: cellConfig.energyToMaxSpeed,
+            minPower: cellConfig.minPower,
+            maxPower: cellConfig.maxPower,
+            energyToPower: cellConfig.energyToPower,
+            maxVolatilization: cellConfig.maxVolatilization,
+            minVolatilization: cellConfig.minVolatilization,
+            energyToVolatilization: cellConfig.energyToVolatilization
+        )
+        
+        food = FoodConfig(mass: dataConfigDTO.food.mass)
     }
 }
